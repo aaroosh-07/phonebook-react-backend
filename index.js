@@ -2,7 +2,6 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const person = require("./models/mongodb.js");
-const { response } = require("express");
 
 const app = express();
 
