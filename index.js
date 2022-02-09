@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const person = require("./models/mongodb.js");
+const { response } = require("express");
 
 const app = express();
 
@@ -54,55 +55,70 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-    const id = Number(request.params.id);
-    const person = persons.find((person) => person.id === id);
-    if (person) {
-        response.json(person);
-    } else {
-        response.status(404).end();
-    }
+    person
+        .findById(request.params.id)
+        .then((record) => {
+            if (record) {
+                response.json(record);
+            } else {
+                response.status(404).end();
+            }
+        })
+        .catch((error) => {
+            console.log("some error occured", error);
+            response.status(400).json({ error: "some error occured" });
+        });
 });
 
 app.post("/api/persons", (request, response) => {
     const body = request.body;
+
     if (!body.name || !body.num) {
         response.status(400).end();
     }
-    const person = {
-        id: generateId(),
+
+    const record = person({
         name: body.name,
         num: body.num,
         important: body.important,
-    };
-    persons = persons.concat(person);
-    response.json(person);
+    });
+
+    record.save().then((savedRecord) => {
+        response.json(savedRecord);
+    });
 });
 
 app.put("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id);
-    const per = persons.find((p) => p.id === id);
-    if (!per) {
-        res.status(400).end();
-    }
     const body = req.body;
     if (!body.name || !body.num) {
         res.status(400).end();
     }
-    const person = {
-        id: id,
+    const record = {
         name: body.name,
         num: body.num,
         important: body.important,
     };
-    persons = persons.map((p) => (p.id === id ? person : p));
-    res.status(200).end();
+    person
+        .findByIdAndUpdate(req.params.id, record, { new: true })
+        .then((updatedRecord) => {
+            res.json(updatedRecord);
+        })
+        .catch((error) => {
+            console.log("some error occured", error);
+            res.status(400).end();
+        });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-    const id = Number(request.params.id);
-    persons = persons.filter((p) => p.id !== id);
-
-    response.status(204).end();
+    person
+        .findByIdAndDelete(request.params.id)
+        .then(() => {
+            response.status(204).end();
+        })
+        .catch((error) => {
+            console.log("some error has occured", error);
+            response.status(204).end();
+        });
 });
 
 const PORT = 3001;
