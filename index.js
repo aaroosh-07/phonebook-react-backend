@@ -1,6 +1,7 @@
 const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const person = require("./models/mongodb.js");
 
 const app = express();
 
@@ -41,7 +42,15 @@ const generateId = () => {
 };
 
 app.get("/api/persons", (request, response) => {
-    response.json(persons);
+    person
+        .find({})
+        .then((notes) => {
+            console.log("inside of sending back notes..", notes);
+            response.json(notes);
+        })
+        .catch((error) => {
+            console.log("error occured in fetching ", error.message);
+        });
 });
 
 app.get("/api/persons/:id", (request, response) => {
