@@ -2,6 +2,7 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const person = require("./models/mongodb.js");
+const errorHandler = require("./errorHandler.js");
 
 const app = express();
 
@@ -9,39 +10,7 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
-let persons = [
-    {
-        id: 1,
-        name: "Arto Hellas",
-        num: "040-123456",
-        important: false,
-    },
-    {
-        id: 2,
-        name: "Ada Lovelace",
-        num: "39-44-5323523",
-        important: false,
-    },
-    {
-        id: 3,
-        name: "Dan Abramov",
-        num: "12-43-234345",
-        important: false,
-    },
-    {
-        id: 4,
-        name: "Mary Poppendieck",
-        num: "39-23-6423122",
-        important: false,
-    },
-];
-
-const generateId = () => {
-    const maxId = Math.max(...persons.map((a) => a.id));
-    return maxId + 1;
-};
-
-app.get("/api/persons", (request, response) => {
+app.get("/api/persons", (request, response, next) => {
     person
         .find({})
         .then((notes) => {
@@ -49,11 +18,11 @@ app.get("/api/persons", (request, response) => {
             response.json(notes);
         })
         .catch((error) => {
-            console.log("error occured in fetching ", error.message);
+            next(error);
         });
 });
 
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
     person
         .findById(request.params.id)
         .then((record) => {
@@ -64,8 +33,7 @@ app.get("/api/persons/:id", (request, response) => {
             }
         })
         .catch((error) => {
-            console.log("some error occured", error);
-            response.status(400).json({ error: "some error occured" });
+            next(error);
         });
 });
 
@@ -124,3 +92,5 @@ const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`server running on port ${PORT}`);
 });
+
+app.use(errorHandler);
