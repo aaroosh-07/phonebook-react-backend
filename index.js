@@ -37,12 +37,8 @@ app.get("/api/persons/:id", (request, response, next) => {
         });
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", (request, response, next) => {
     const body = request.body;
-
-    if (!body.name || !body.num) {
-        response.status(400).end();
-    }
 
     const record = person({
         name: body.name,
@@ -50,9 +46,12 @@ app.post("/api/persons", (request, response) => {
         important: body.important,
     });
 
-    record.save().then((savedRecord) => {
-        response.json(savedRecord);
-    });
+    record
+        .save()
+        .then((savedRecord) => {
+            response.json(savedRecord);
+        })
+        .catch((error) => next(error));
 });
 
 app.put("/api/persons/:id", (req, res) => {

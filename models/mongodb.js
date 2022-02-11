@@ -13,8 +13,16 @@ mongoose
     });
 
 const schema = new mongoose.Schema({
-    name: String,
-    num: String,
+    name: {
+        type: String,
+        minlength: 2,
+        required: true,
+    },
+    num: {
+        type: String,
+        minlength: 2,
+        required: true,
+    },
     important: Boolean,
 });
 
